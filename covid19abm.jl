@@ -135,7 +135,7 @@ end
     fd_2::Int64 = 0 #first-dose doses when second one is given
     sd1::Array{Int64,1} = fd_1 #second-dose doses
     sec_dose_delay::Array{Int64,1} = vac_period #delay in second dose
-    start_vac::Int64 = 71
+    start_vac::Int64 = 84
     days_change_vac_rate::Array{Int64,1} = [start_vac;map(y->y+start_vac,map(x->(x-1)*7, 2:length(fd_1)-1))] #when the
     extra_dose::Bool = false #if it is turned on, extradoses are given to general population
     extra_dose_n::Int64 = 0 #how many
@@ -184,6 +184,8 @@ end
 
     lockdown::Bool = false
     lockdown_day::Int64 = 24
+
+    scenario::Symbol = :baseline
 end
 
 Base.show(io::IO, ::MIME"text/plain", z::Human) = dump(z)
@@ -685,6 +687,13 @@ function reset_params(ip::ModelParameters)
     # resize the human array to change population size
     resize!(humans, p.popsize)
     resize!(household, p.total_household)
+
+    aux = p.fd_1
+
+    if p.scenario == :fast
+        setfield!(p,:fd_1,map(y->y*2,aux))
+    end
+    
 end
 export reset_params, reset_params_default
 
@@ -1111,7 +1120,12 @@ function move_to_latent(x::Human)
     symp_pcts = [0.7, 0.623, 0.672, 0.672, 0.812, 0.812] #[0.3 0.377 0.328 0.328 0.188 0.188]
     age_thres = [4, 19, 49, 64, 79, 999]
     g = findfirst(y-> y >= x.age, age_thres)
-    auxiliar = x.recovered ? (1-p.vac_efficacy_symp[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    if x.vaccine == :pfizer
+        auxiliar = x.recovered ? (1-p.vac_efficacy_symp_p[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    else
+        auxiliar = x.recovered ? (1-p.vac_efficacy_symp_m[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    end
+    
     if rand() < (symp_pcts[g])*auxiliar
         if x.strain == 1
             x.swap = PRE
@@ -1174,7 +1188,11 @@ function move_to_pre(x::Human)
     x.health = x.swap
     x.tis = 0   # reset time in state 
     x.exp = x.dur[3] # get the presymptomatic period
-    auxiliar = x.recovered ? (1-p.vac_efficacy_sev[2][end]) : (1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    if x.vaccine == :pfizer
+        auxiliar = x.recovered ? (1-p.vac_efficacy_sev_p[2][end]) : (1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    else
+        auxiliar = x.recovered ? (1-p.vac_efficacy_sev_m[2][end]) : (1-x.vac_ef_sev*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
+    end
     if rand() < (1-θ[x.ag])*auxiliar
         if x.strain == 1
             x.swap = INF
