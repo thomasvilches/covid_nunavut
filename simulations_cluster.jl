@@ -18,7 +18,7 @@ using DelimitedFiles
 
 #@everywhere using covid19abm
 
-addprocs(SlurmManager(250), N=8, topology=:master_worker, exeflags="--project=.")
+addprocs(SlurmManager(500), N=17, topology=:master_worker, exeflags="--project=.")
 @everywhere using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
 @everywhere include("covid19abm.jl")
 @everywhere const cv=covid19abm
@@ -281,7 +281,7 @@ function run_param_scen(b,h_i = 0,ic=1,ic2=1,fs=0.0,fm=0.0,strain_trans=1.5,vacc
 end
 
 
-function run_param_scen_cal(b,h_i = 0,ic=[1],dfs = [1],ic2=1,vec1=[1],vec2=[999],vs = 999,strain_trans=1.5,strain_trans3=(1.5*1.3),index = 0,st=[999],tt=999,it=1,timet=500,scen = "baseline",nsims=500)
+function run_param_scen_cal(b,h_i = 0,ic=[1],dfs = [1],ic2=1,ld = 999,vec1=[1],vec2=[999],vs = 999,strain_trans=1.5,strain_trans3=(1.5*1.3),index = 0,st=[999],tt=999,it=1,timet=500,scen = "baseline",nsims=500)
     
     @everywhere ip = cv.ModelParameters(β=$b,fsevere = 1.0,fmild = 1.0,
     herd = $(h_i),start_several_inf=true,
@@ -295,6 +295,7 @@ function run_param_scen_cal(b,h_i = 0,ic=[1],dfs = [1],ic2=1,vec1=[1],vec2=[999]
     modeltime = $timet,
     start_vac = $vs,
     lockdown_day = $ic2,
+    lift_day = $ld,
     time_sec_strain = $st,
     time_third_strain = $tt,
     time_change_contact = $vec2,

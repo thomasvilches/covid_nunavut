@@ -184,6 +184,7 @@ end
 
     lockdown::Bool = false
     lockdown_day::Int64 = 24
+    lift_day::Int64 = 999
 
     scenario::Symbol = :baseline
 end
@@ -329,6 +330,8 @@ function main(ip::ModelParameters,sim::Int64)
 
         if st == p.lockdown_day
             setfield!(p, :lockdown, true)
+        elseif st == p.lift_day
+            setfield!(p, :lockdown, false)
         end
         # start of day
         #println("$st")
@@ -1792,8 +1795,6 @@ function negative_binomials(ag,mult)
     ## the means/sd here are calculated using _calc_avgag
     means = [10.21, 16.793, 13.7950, 11.2669, 8.0027]
     sd = [7.65, 11.7201, 10.5045, 9.5935, 6.9638]
-
-
     means = means*mult
     totalbraks = length(means)
     nbinoms = Vector{NegativeBinomial{Float64}}(undef, totalbraks)
