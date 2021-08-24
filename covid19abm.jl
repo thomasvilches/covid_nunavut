@@ -91,7 +91,7 @@ end
     #vaccine_ef::Float16 = 0.0   ## change this to Float32 typemax(Float32) typemax(Float64)
     vac_com_dec_max::Float16 = 0.0 # how much the comorbidity decreases the vac eff
     vac_com_dec_min::Float16 = 0.0 # how much the comorbidity decreases the vac eff
-    herd::Int8 = 0 #typemax(Int32) ~ millions
+    herd::Float64 = 0 #typemax(Int32) ~ millions
     file_index::Int16 = 0
 
     prop_contacts_home::Array{Float64,1} = [0.4045369;0.3190931;0.2404220;0.3358313;0.4092841] #propostion of contacts happening at home
