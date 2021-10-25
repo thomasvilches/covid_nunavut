@@ -695,6 +695,14 @@ function reset_params(ip::ModelParameters)
 
     if p.scenario == :fast
         setfield!(p,:fd_1,map(y->y*2,aux))
+    elseif p.scenario == :fast2
+        
+        setfield!(p,:start_vac,79)
+
+        v1 = [0;21;41;56;65;76;104;123;130;151;161;245]
+        v2 = [0;280;294;222;926;223;388;222;322;47;588;108;24]
+        setfield!(p,:fd_1,v2)
+        setfield!(p,:days_change_vac_rate,map(y->p.start_vac+y,v1))
     end
     
 end
@@ -1853,7 +1861,6 @@ function negative_binomials_lockdown(ag,mult)
     end
     return nbinoms[ag]   
 end
-
 
 ## references: 
 # critical care capacity in Canada https://www.ncbi.nlm.nih.gov/pubmed/25888116
