@@ -75,7 +75,7 @@ end
     heatmap::Bool = false
     ignore_cal::Bool = false
     start_several_inf::Bool = true
-    modeltime::Int64 = 250
+    modeltime::Int64 = 260
     initialinf::Array{Int64,1} = [2]
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     time_first_strain::Array{Int64,1} = [62]
@@ -133,8 +133,8 @@ end
     red_risk_perc::Float64 = 1.0 #relative isolation in vaccinated individuals
     reduction_protection::Float64 = 0.0 #reduction in protection against infection
     #fd_1::Array{Int64,1} = [0;18;60;110;150;408;350;220;194;202;219;302;207;330;536;600;660;750;800] #daily vaccination rate
-    factor::Float64 = 0.85
-    fd_1::Array{Int64,1} = map(y->y,[0;4;53;306;341;84;128;361;320;316;289;289;239;243;212;228;325;236;146;81])#daily vaccination rate
+    factor::Float64 = 1.0
+    fd_1::Array{Int64,1} = map(y->Int(round(factor*y)),[0;4;53;306;341;84;128;361;320;316;289;289;239;243;212;228;325;236;146;81])#daily vaccination rate
     fd_2::Int64 = 0 #first-dose doses when second one is given
     sd1::Array{Int64,1} = fd_1 #second-dose doses
     sec_dose_delay::Array{Int64,1} = vac_period #delay in second dose
