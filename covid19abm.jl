@@ -75,7 +75,7 @@ end
     heatmap::Bool = false
     ignore_cal::Bool = false
     start_several_inf::Bool = true
-    modeltime::Int64 = 500
+    modeltime::Int64 = 250
     initialinf::Array{Int64,1} = [2]
     initialhi::Int64 = 0 ## initial herd immunity, inserts number of REC individuals
     time_first_strain::Array{Int64,1} = [62]
@@ -115,10 +115,10 @@ end
     
     #=--------- Vaccine efficacy of Pfizer ----------------------=#
     days_to_protection_p::Array{Array{Int64,1},1} = [[14],[0;7]]
-    vac_efficacy_inf_p::Array{Array{Array{Float64,1},1},1} = [[0.46],[0.6;0.92],[0.46],[0.6;0.92],[0.46],[0.6;0.92]] #### 50:5:80
-    vac_efficacy_symp_p::Array{Array{Array{Float64,1},1},1} = [[0.57],[0.66;0.94],[0.57],[0.66;0.94],[0.57],[0.66;0.94]]  #### 50:5:80
-    vac_efficacy_sev_p::Array{Array{Array{Float64,1},1},1} = [[0.62],[0.80;0.92],[0.62],[0.80;0.92],[0.62],[0.80;0.92]]  #### 50:5:80
-    
+    vac_efficacy_inf_p::Array{Array{Array{Float64,1},1},1} = [[[0.46],[0.6;0.92]],[[0.46],[0.6;0.92]],[[0.46],[0.6;0.92]]] #### 50:5:80
+    vac_efficacy_symp_p::Array{Array{Array{Float64,1},1},1} = [[[0.57],[0.66;0.94]],[[0.57],[0.66;0.94]],[[0.57],[0.66;0.94]]]  #### 50:5:80
+    vac_efficacy_sev_p::Array{Array{Array{Float64,1},1},1} = [[[0.62],[0.80;0.92]],[[0.62],[0.80;0.92]],[[0.62],[0.80;0.92]]]  #### 50:5:80
+     
     #=--------- Vaccine efficacy of Moderna ----------------------=#
     days_to_protection_m::Array{Array{Int64,1},1} = [[14],[14]]
     vac_efficacy_inf_m::Array{Array{Array{Float64,1},1},1} = [[[0.61],[0.935]],[[0.56],[0.86]],[[0.496],[0.76]]] #### 50:5:80
@@ -165,6 +165,9 @@ end
     mortality_inc::Float64 = 1.3 #The mortality increase when infected by strain 2
 
     pfizer_proportion::Float64 = 0.0
+    v_day::Array{Int64,1} = [999]
+    v_prop::Array{Float64,1} = [1.0]
+    current_prop::Float64 = 1.0
 
     time_change::Int64 = 999## used to calibrate the model
     how_long::Int64 = 1## used to calibrate the model
@@ -296,6 +299,9 @@ function main(ip::ModelParameters,sim::Int64)
     count_day_fs::Int16 = 1
     vac_ind2 = vac_selection(sim)
     vac_ind = Array{Int64,1}(undef,length(vac_ind2))
+    p.current_prop = p.v_prop[1] #proportion of first and second doses that are given
+    count_day::Int64 = 1 ##control for proportion of second doses
+
     if p.vaccinating
         for i = 1:length(vac_ind2)
             vac_ind[i] = vac_ind2[i]
@@ -329,7 +335,6 @@ function main(ip::ModelParameters,sim::Int64)
             count_change += 1
         end
 
-        
 
         if st == p.lockdown_day
             setfield!(p, :lockdown, true)
@@ -350,6 +355,13 @@ function main(ip::ModelParameters,sim::Int64)
             time_pos += 1
         end
         time_vac += 1
+
+
+        if st == p.v_day[count_day]
+            p.current_prop = p.v_prop[count_day+1]
+            count_day += 1
+        end
+
         p.vaccinating && vac_time!(vac_ind,time_pos+1)
                 
        
@@ -541,9 +553,10 @@ function vac_time!(vac_ind::Array{Int64,1},time_pos::Int64)
     ##In this code, we firstly need to check the second dose
     pos = findall(y-> humans[y].vac_status == 1 && humans[y].days_vac >= p.vac_period[humans[y].vaccine_n] && !(humans[y].health in aux),vac_ind)
 
-    aux_fd = p.fd_1[time_pos]
+    aux_fd = Int(round(p.fd_1[time_pos]*p.current_prop))
 
     l = min(aux_fd,length(pos))
+    l2 = aux_fd-l #remaining doses
 
     for i = 1:l
         x = humans[vac_ind[pos[i]]]
@@ -554,7 +567,8 @@ function vac_time!(vac_ind::Array{Int64,1},time_pos::Int64)
 
     ##first dose
     pos = findall(y-> humans[y].vac_status == 0 && !(humans[y].health in aux),vac_ind)
-    l = min(aux_fd-l,length(pos))
+    aux_fd = Int(round(p.fd_1[time_pos]*(1-p.current_prop)))+l2 ###the number of first doses + remaining second doses
+    l = min(aux_fd,length(pos))
     for i = 1:l
         x = humans[vac_ind[pos[i]]]
         x.days_vac = 0
@@ -683,7 +697,7 @@ function reset_params(ip::ModelParameters)
         setfield!(p,:fd_1,map(y->y*2,aux))
     elseif p.scenario == :fast2
         
-        setfield!(p,:start_vac,79)
+        setfield!(p,:start_vac,67)
 
         v1 = [0;21;41;56;65;76;104;123;130;151;161;245]
         v2 = [0;280;294;222;926;223;388;222;322;47;588;108;24]
@@ -1117,11 +1131,7 @@ function move_to_latent(x::Human)
     symp_pcts = [0.7, 0.623, 0.672, 0.672, 0.812, 0.812] #[0.3 0.377 0.328 0.328 0.188 0.188]
     age_thres = [4, 19, 49, 64, 79, 999]
     g = findfirst(y-> y >= x.age, age_thres)
-    #= if x.vaccine == :pfizer
-        auxiliar = x.recovered ? (1-p.vac_efficacy_symp_p[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
-    else
-        auxiliar = x.recovered ? (1-p.vac_efficacy_symp_m[2][end]) : (1-x.vac_ef_symp*(1-p.strain_ef_red3)^(Int(x.strain==3))*(1-p.strain_ef_red)^(Int(x.strain==2)))
-    end =#
+    
 
     if x.recovered
         auxiliar = (1-p.vac_efficacy_symp_m[x.strain][2][end])
@@ -1678,7 +1688,7 @@ function dyntrans(sys_time, grps,sim)
                     adj_beta = 0 # adjusted beta value by strain and vaccine efficacy
                     if y.health == SUS && y.swap == UNDEF
                         
-                        auxiliar = x.protected*x.index_protection > 0 ? (1-x.vac_ef_symp[x.strain][x.protected][x.index_protection]) : 1.0
+                        auxiliar = y.protected*y.index_protection > 0 ? (1-y.vac_ef_inf[x.strain][y.protected][y.index_protection]) : 1.0
                         adj_beta = beta*auxiliar
                        
                     elseif (x.strain == 3 && y.health in (REC, REC2) && y.swap == UNDEF)
@@ -1718,14 +1728,11 @@ function dyntrans(sys_time, grps,sim)
                 
                 beta = _get_betavalue(sys_time, xhealth)
                 adj_beta = 0 # adjusted beta value by strain and vaccine efficacy
-                if y.health == SUS && y.swap == UNDEF                  
-                    if (x.strain == 1 || x.strain == 2) 
-                        adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red)^(x.strain-1))
-                    elseif x.strain == 3
-                        adj_beta = beta*(1-y.vac_ef_inf*(1-p.strain_ef_red3)) ###(1-0.0*(1-0.8)) = (1-0.0) = 1.0*beta
-                    else 
-                        error("error -- strain set")
-                    end
+                if y.health == SUS && y.swap == UNDEF
+                    
+                    auxiliar = y.protected*y.index_protection > 0 ? (1-y.vac_ef_inf[x.strain][y.protected][y.index_protection]) : 1.0
+                    adj_beta = beta*auxiliar
+                    
                 elseif (x.strain == 3 && y.health in (REC, REC2) && y.swap == UNDEF)
                     adj_beta = beta*(p.reduction_recovered) #0.21
                 end
@@ -1859,5 +1866,3 @@ end
 ## references: 
 # critical care capacity in Canada https://www.ncbi.nlm.nih.gov/pubmed/25888116
 end # module end
-
-const lock_down = []

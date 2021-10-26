@@ -153,6 +153,10 @@ end
 
 function run_param_scen_cal(b,h_i = 0,ic=[1],dfs = [1],ic2=1,ld = 999,vec1=[1],vec2=[999],vs = 999,strain_trans=1.5,strain_trans3=(1.5*1.3),index = 0,st=[999],tt=999,it=1,timet=500,scen = "baseline",nsims=500)
     
+    df = CSV.read("proportion_seconddose.csv",DataFrame,header=true,delim = ",")
+    v_day = df[:,:v_day]
+    v_prop = df[:,:vp]
+
     @everywhere ip = cv.ModelParameters(β=$b,fsevere = 1.0,fmild = 1.0,
     herd = $(h_i),start_several_inf=true,
     ins_sec_strain = true,
@@ -172,7 +176,8 @@ function run_param_scen_cal(b,h_i = 0,ic=[1],dfs = [1],ic2=1,ld = 999,vec1=[1],v
     change_rate_values = $vec1,
     time_first_strain = $dfs,
     file_index = $index,
-    scenario = Symbol($scen))
+    scenario = Symbol($scen),
+    v_day = $v_day, v_prop = $v_prop)
 
     folder = create_folder(ip)
 
