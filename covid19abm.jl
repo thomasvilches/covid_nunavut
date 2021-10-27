@@ -101,11 +101,11 @@ end
 
     #the cap for coverage should be 90% for 65+; 95% for HCW; 80% for 50-64; 60% for 16-49; and then 50% for 12-15 (starting from June 1).
 
-    hcw_vac_comp::Float64 = 0.95
+    hcw_vac_comp::Float64 = 1.0
     hcw_prop::Float64 = 0.05 #prop que é trabalhador da saude
-    eld_comp::Float64 = 0.90
-    old_adults::Float64 = 0.9
-    young_adults::Float64 = 0.8
+    eld_comp::Float64 = 1.0
+    old_adults::Float64 = 1.0
+    young_adults::Float64 = 1.0
     kid_comp::Float64 = 0.0
     #comor_comp::Float64 = 0.7 #prop comorbidade tomam
 
