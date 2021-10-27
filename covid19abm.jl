@@ -133,7 +133,7 @@ end
     red_risk_perc::Float64 = 1.0 #relative isolation in vaccinated individuals
     reduction_protection::Float64 = 0.0 #reduction in protection against infection
     #fd_1::Array{Int64,1} = [0;18;60;110;150;408;350;220;194;202;219;302;207;330;536;600;660;750;800] #daily vaccination rate
-    factor::Float64 = 1.0
+    factor::Float64 = 1.28
     fd_1::Array{Int64,1} = map(y->Int(round(factor*y)),[0;4;53;306;341;84;128;361;320;316;289;289;239;243;212;228;325;236;146;81])#daily vaccination rate
     fd_2::Int64 = 0 #first-dose doses when second one is given
     sd1::Array{Int64,1} = fd_1 #second-dose doses
@@ -532,9 +532,6 @@ function vac_selection(sim::Int64)
 
     pos_o1 = pos_old[1:Int(floor(length(pos_old)/2))]
     pos_o2 = pos_old[Int(floor(length(pos_old)/2)+1):end]
-
-    pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
-    pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
 
     pos_y1 = pos_young[1:Int(floor(length(pos_young)/2))]
     pos_y2 = pos_young[Int(floor(length(pos_young)/2)+1):end]
