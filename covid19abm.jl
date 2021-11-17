@@ -123,7 +123,7 @@ end
     days_to_protection_m::Array{Array{Int64,1},1} = [[14],[14]]
     vac_efficacy_inf_m::Array{Array{Array{Float64,1},1},1} = [[[0.61],[0.935]],[[0.56],[0.86]],[[0.496],[0.76]]] #### 50:5:80
     vac_efficacy_symp_m::Array{Array{Array{Float64,1},1},1} =[[[0.921],[0.941]],[[0.88],[0.91]],[[0.68],[0.70]]]#### 50:5:80
-    vac_efficacy_sev_m::Array{Array{Array{Float64,1},1},1} = [[[0.921],[1.0]],[[0.816],[0.957]],[[0.781],[916]]] #### 50:5:80
+    vac_efficacy_sev_m::Array{Array{Array{Float64,1},1},1} = [[[0.921],[1.0]],[[0.816],[0.957]],[[0.781],[0.916]]] #### 50:5:80
    
 
     vaccinating::Bool = true #vaccinating?
