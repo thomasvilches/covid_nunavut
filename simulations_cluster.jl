@@ -18,7 +18,7 @@ using DelimitedFiles
 
 #@everywhere using covid19abm
 
-addprocs(SlurmManager(250), N=8, topology=:master_worker, exeflags="--project=.")
+addprocs(SlurmManager(500), N=16, topology=:master_worker, exeflags="--project=.")
 @everywhere using Parameters, Distributions, StatsBase, StaticArrays, Random, Match, DataFrames
 @everywhere include("covid19abm.jl")
 @everywhere const cv=covid19abm
@@ -164,7 +164,7 @@ function run_param_scen_cal(b,h_i = 0,ic=[1],dfs = [1],ic2=1,ld = 999,vec1=[1],v
     sec_strain_trans = $strain_trans,
     third_strain_trans = $strain_trans3,
     initialinf = $ic,
-    initialinf2 = 1,
+    initialinf2 = $it,
     initialinf3 = $it,
     modeltime = $timet,
     start_vac = $vs,
